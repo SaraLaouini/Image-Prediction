@@ -1,13 +1,11 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[2]:
-
-
 import cv2
 import os
+import h5py
+import numpy as np
+from PIL import Image
 
-# Define a function to clean image data for training
+
+
 def clean_image(image_path, output_path, target_size=(224, 224), grayscale=False):
     image = cv2.imread(image_path)
     
@@ -35,11 +33,7 @@ for filename in os.listdir(input_dir):
     clean_image(input_path, output_path, target_size=(224, 224), grayscale=True)
 
 
-# In[3]:
 
-
-
-# Define a function to clean image data for test 
 def clean_image(image_path, output_path, target_size=(224, 224), grayscale=False):
     image = cv2.imread(image_path)
     
@@ -67,14 +61,6 @@ for filename in os.listdir(input_dir):
     clean_image(input_path, output_path, target_size=(224, 224), grayscale=True)
 
 
-# In[4]:
-
-
-import h5py
-import numpy as np
-from PIL import Image
-import os
-
 source_folder = 'cat_other_train'
 
 target_folder = 'cat_other_trainN'
@@ -82,7 +68,6 @@ target_folder = 'cat_other_trainN'
 if not os.path.exists(target_folder):
     os.makedirs(target_folder)
 
-# Define a labeling function
 def label_image(image_path):
    
     if "cat" in os.path.basename(image_path):
@@ -106,17 +91,14 @@ for filename in os.listdir(source_folder):
 print("Images labeled and saved to the target folder.")
 
 
-# In[5]:
-
-
 source_folder = 'cat_other_trainN'  
 
 image_paths = [os.path.join(source_folder, filename) for filename in os.listdir(source_folder) if filename.endswith(('.jpg', '.png'))]
 
-# Define labels (0 or 1) for each image
+
 labels = [0 if "0_" in filename else 1 for filename in os.listdir(source_folder) if filename.endswith(('.jpg', '.png'))]
 
-# Open the H5 file in write ('w') mode
+
 with h5py.File('train.h5', 'w') as file:
     image_data_list = []
 
@@ -128,27 +110,19 @@ with h5py.File('train.h5', 'w') as file:
 
     max_shape = tuple(max(image.shape[i] for image in image_data_list) for i in range(3))
 
-    # Create a dataset for image data ('X_train')
     image_dataset = file.create_dataset('X_train', shape=(len(image_data_list),) + max_shape, dtype=np.uint8)
 
     for i, image_data in enumerate(image_data_list):
         image_dataset[i, :image_data.shape[0], :image_data.shape[1], :image_data.shape[2]] = image_data
 
-    # Create a dataset for labels ('Y_train')
     label_dataset = file.create_dataset('Y_train', data=labels)
 
-    # Create a list of classes and store it in the H5 file
     class_list = [b'non-cat', b'cat']
     class_dataset = file.create_dataset('list_classes', data=class_list)
 
 print("Labeled images (converted to RGB) added to H5 file 'train.h5'.")
 
 
-# In[6]:
-
-
-
-# Open the H5 file in read mode
 with h5py.File('train.h5', 'r') as file:
     for key in file.keys():
         print("Key:", key)
@@ -162,12 +136,6 @@ with h5py.File('train.h5', 'r') as file:
 
 file.close()
 
-
-# In[7]:
-
-
-#Now for test 
-
 source_folder = 'cat_other_test'
 
 target_folder = 'cat_other_testN'
@@ -175,7 +143,7 @@ target_folder = 'cat_other_testN'
 if not os.path.exists(target_folder):
     os.makedirs(target_folder)
 
-# Define a labeling function
+
 def label_image(image_path):
    
     if "cat" in os.path.basename(image_path):
@@ -199,19 +167,14 @@ for filename in os.listdir(source_folder):
 print("Images labeled and saved to the target folder.")
 
 
-# In[8]:
-
-
 
 
 source_folder = 'cat_other_testN'  
 
 image_paths = [os.path.join(source_folder, filename) for filename in os.listdir(source_folder) if filename.endswith(('.jpg', '.png'))]
 
-# Define labels (0 or 1) for each image
 labels = [0 if "0_" in filename else 1 for filename in os.listdir(source_folder) if filename.endswith(('.jpg', '.png'))]
 
-# Open the H5 file in write ('w') mode
 with h5py.File('test.h5', 'w') as file:
     image_data_list = []
 
@@ -223,26 +186,19 @@ with h5py.File('test.h5', 'w') as file:
 
     max_shape = tuple(max(image.shape[i] for image in image_data_list) for i in range(3))
 
-     # Create a dataset for image data ('X_test')
     image_dataset = file.create_dataset('X_test', shape=(len(image_data_list),) + max_shape, dtype=np.uint8)
 
     for i, image_data in enumerate(image_data_list):
         image_dataset[i, :image_data.shape[0], :image_data.shape[1], :image_data.shape[2]] = image_data
 
-    # Create a dataset for labels ('Y_test')
     label_dataset = file.create_dataset('Y_test', data=labels)
 
-    # Create a list of classes and store it in the H5 file
     class_list = [b'non-cat', b'cat']
     class_dataset = file.create_dataset('list_classes', data=class_list)
 
 print("Labeled images (converted to RGB) added to H5 file 'test.h5'.")
 
 
-# In[9]:
-
-
-# Open the H5 file in read mode
 with h5py.File('test.h5', 'r') as file:
     for key in file.keys():
         print("Key:", key)
@@ -257,13 +213,9 @@ with h5py.File('test.h5', 'r') as file:
 file.close()
 
 
-# In[10]:
-
-
 import copy
 import matplotlib.pyplot as plt
 
-#Load data
 
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 train_dataset = h5py.File('train.h5', "r")
@@ -283,20 +235,12 @@ Y_test = np.array(test_dataset["Y_test"][:])
 
 
 
-
-# In[11]:
-
-
-# Example of a picture
 classes = ["non-cat", "cat"]
 index = 180
 
 plt.imshow(X_trainN[index])
 
 print("y = " + str(Y_train[index]) + ", it's a '" + classes[np.squeeze(Y_train[index])] + "' picture.")
-
-
-# In[12]:
 
 
 
@@ -317,10 +261,6 @@ print ("X_test shape: " + str(X_testN.shape))
 print ("Y_test shape: " + str(Y_test.shape))
 
 
-# In[13]:
-
-
-
 X_train_flatten = X_trainN.reshape(X_trainN.shape[0],-1).T
 
 X_test_flatten = X_testN.reshape(X_testN.shape[0],-1).T
@@ -334,15 +274,8 @@ print ("X_test_flatten shape: " + str(X_test_flatten.shape))
 print ("Y_test shape: " + str(Y_test.shape))
 
 
-# In[14]:
-
-
 X_train = X_train_flatten / 255.
 X_test = X_test_flatten / 255.
-
-
-# In[15]:
-
 
 
 def sigmoid(z):
@@ -350,9 +283,6 @@ def sigmoid(z):
     s = 1/(1+np.exp(-z))
         
     return s
-
-
-# In[16]:
 
 
 
@@ -363,9 +293,6 @@ def initialize_with_zeros(dim):
     b = 0.0
 
     return w, b
-
-
-# In[17]:
 
 
 
@@ -389,10 +316,6 @@ def propagate(w, b, X, Y):
              "db": db}
     
     return grads, cost
-
-
-# In[18]:
-
 
 
 def optimize(w, b, X, Y, num_iterations=100, learning_rate=0.009, print_cost=False):
@@ -428,10 +351,6 @@ def optimize(w, b, X, Y, num_iterations=100, learning_rate=0.009, print_cost=Fal
     return params, grads, costs
 
 
-# In[19]:
-
-
-
 def predict(w, b, X):
   
     m = X.shape[1]
@@ -448,9 +367,6 @@ def predict(w, b, X):
             Y_prediction[0,i] = 0
             
     return Y_prediction
-
-
-# In[20]:
 
 
 
@@ -480,15 +396,7 @@ def model(X_train, Y_train, X_test, Y_test, num_iterations=2000, learning_rate=0
 
         return d
 
-
-# In[21]:
-
-
 logistic_regression_model = model(X_train, Y_train, X_test, Y_test, num_iterations=2000, learning_rate=0.001, print_cost=True)
-
-
-# In[22]:
-
 
 my_image = "cat.jpg"   
 
@@ -500,9 +408,6 @@ my_predicted_image = predict(logistic_regression_model["w"], logistic_regression
 
 predicted_class = classes[int(np.squeeze(my_predicted_image))]
 print(f"y = {int(np.squeeze(my_predicted_image))}, your algorithm predicts a \"{predicted_class}\" picture.")
-
-
-# In[ ]:
 
 
 
